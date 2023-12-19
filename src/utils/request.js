@@ -1,6 +1,6 @@
 import axios from "axios"
 // 记录公共的前缀
-const baseURL = "http://localhost:81";
+const baseURL = "/api";
 const instance = axios.create({baseURL});
 
 // 添加响应拦截器

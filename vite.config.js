@@ -12,5 +12,20 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
+  },
+  // 配置代理
+  server: {
+    proxy: {
+      // 获取路径中包含/api的请求
+      '/api': {
+        // 后台服务所在的源
+        target: 'http://localhost:81',
+        // 修改源
+        changeOrigin: true,
+        // api替换为''
+        rewrite: (path) => path.replace(/^\/api/,'')
+      }
+    }
   }
 })
+
