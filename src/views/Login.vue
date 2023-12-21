@@ -3,6 +3,7 @@ import {User, Lock} from '@element-plus/icons-vue'
 import {ElMessage} from "element-plus"
 import {reactive, ref} from 'vue'
 import { useRouter } from 'vue-router'
+import { useTokenStore } from '@/stores/token.js'
 //控制注册与登录表单的显示， 默认显示注册
 const isRegister = ref(false)
 
@@ -48,9 +49,11 @@ const register = async () => {
 }
 
 const route = useRouter();
+const tokenStore = useTokenStore();
 const login = async () => {
   let result = await userLoginService(registerData);
   ElMessage.success({message: result.data.message ? result.data.message : "登录成功"})
+  tokenStore.setToken(result.data)
   await route.push('/')
 }
 
