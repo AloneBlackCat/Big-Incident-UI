@@ -48,6 +48,7 @@ const register = async () => {
 const login = async () => {
   let result = await userLoginService(registerData);
   ElMessage.success({message: result.data.message ? result.data.message : "登录成功"})
+
 }
 
 // 清空数据模型的数据

@@ -63,7 +63,7 @@ import avatar from '@/assets/default.png'
     <el-container>
       <!-- 头部区域 -->
       <el-header>
-        <div>黑马程序员：<strong>东哥</strong></div>
+        <div>当前用户：<strong>东哥</strong></div>
         <el-dropdown placement="bottom-end">
                     <span class="el-dropdown__box">
                         <el-avatar :src="avatar" />
@@ -88,7 +88,7 @@ import avatar from '@/assets/default.png'
         </div>
       </el-main>
       <!-- 底部区域 -->
-      <el-footer>大事件 ©2023 Created by 黑马程序员</el-footer>
+      <el-footer>大事件 ©2023 Created by restructure snake </el-footer>
     </el-container>
   </el-container>
 </template>
