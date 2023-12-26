@@ -31,7 +31,9 @@ instance.interceptors.response.use(
      (error) => {
         if (error.response.status === 401) {
             ElMessage.error('请先登录')
-            router.push('/login')
+            router.push({
+                name: 'login'
+            })
         } else {
             ElMessage.error({message: "服务异常"});
         }

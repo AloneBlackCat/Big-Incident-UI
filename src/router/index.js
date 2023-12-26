@@ -15,11 +15,11 @@ const routes = [
         component: Layout,
         redirect: '/article/manage',
         children: [
-            { path: '/article/category', component: ArticleCategory },
-            { path: '/article/manage', component: ArticleManage },
-            { path: '/user/info', component: UserInfo },
-            { path: '/user/avatar', component: UserAvatar },
-            { path: '/user/password', component: UserResetPassword }
+            { path: '/article/category', name: 'category', component: ArticleCategory },
+            { path: '/article/manage', name: 'manage', component: ArticleManage },
+            { path: '/user/info', name: 'info', component: UserInfo },
+            { path: '/user/avatar', name: 'avatar', component: UserAvatar },
+            { path: '/user/password', name: 'password', component: UserResetPassword }
         ]
     }
 ]

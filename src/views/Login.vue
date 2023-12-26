@@ -48,13 +48,15 @@ const register = async () => {
   ElMessage.success({message: result.data.message ? result.data.message : "注册成功"})
 }
 
-const route = useRouter();
+const router = useRouter();
 const tokenStore = useTokenStore();
 const login = async () => {
   let result = await userLoginService(registerData);
   ElMessage.success({message: result.message ? result.message : "登录成功"})
   tokenStore.setToken(result.data)
-  await route.push('/')
+  await router.push({
+    name: 'manage'
+  })
 }
 
 // 清空数据模型的数据
