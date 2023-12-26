@@ -1,25 +1,26 @@
 <script setup>
 import {Edit, Delete} from '@element-plus/icons-vue'
 import {reactive, ref} from 'vue'
-import {addCategoryService, categoryListService} from '@/api/category.js'
-import {ElMessage} from "element-plus";
+import {addCategoryService, categoryListService, deleteCategoryService, updateCategoryService} from '@/api/category.js'
+import {ElMessage, ElMessageBox} from "element-plus";
 
 const categories = reactive([
   {
-    "id": 3,
-    "categoryName": "美食",
-    "categoryAlias": "my",
-    "createTime": "2023-09-02 12:06:59",
-    "updateTime": "2023-09-02 12:06:59"
+    id: 3,
+    categoryName: "美食",
+    categoryAlias: "my",
+    createTime: "2023-09-02 12:06:59",
+    updateTime: "2023-09-02 12:06:59"
   }
 ])
 
 const getCategories = async () => {
+  // 重置列表
+  categories.length = 0
   let result = await categoryListService()
-  Object.assign(categories, result.data.data)
+  // 重新赋值
+  Object.assign(categories, result.data)
 }
-
-getCategories()
 
 // 设置弹层
 const dialogVisible = ref(false)
@@ -43,20 +44,58 @@ const clearData = () => {
   dialogVisible.value = false
   // 清空数据
   Object.assign(categoryData, {
-    "categoryName" : '',
-    "categoryAlias" : ''})
+    id: null,
+    categoryName: '',
+    categoryAlias : ''})
 
 }
 
+getCategories()
 // 添加分类
-const add = async () => {
+const addOrUpdate = async () => {
+  let result
+  if (categoryData.id === null || categoryData.id === undefined) {
   // 得到返回结果
-  let result = await addCategoryService(categoryData)
-  ElMessage.success(result.data.message? result.data.message : '添加成功')
+    result = await addCategoryService(categoryData)
+  } else {
+    result = await updateCategoryService(categoryData)
+  }
+  ElMessage.success(result.message? result.message : '添加成功')
   // 关闭弹层
   dialogVisible.value = false
+  // 清空数据
+  clearData()
   // 重新加载数据
   await getCategories()
+}
+
+const editCategory = (row) => {
+  Object.assign(categoryData, {
+    id: row.id,
+    categoryName: row.categoryName,
+    categoryAlias : row.categoryAlias
+  })
+  dialogVisible.value = true
+}
+
+const delCategory = (id) => {
+  ElMessageBox.confirm(
+      '是否要删除该分类?',
+      'Warning',
+      {
+        confirmButtonText: '是的',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+  )
+      .then(async () => {
+        let result = await deleteCategoryService(id)
+        ElMessage.success(result.message? result.message : '删除成功')
+        await getCategories()
+      })
+      .catch(() => {
+        ElMessage.info( '取消删除')
+      })
 }
 
 </script>
@@ -76,8 +115,8 @@ const add = async () => {
       <el-table-column label="分类别名" prop="categoryAlias"></el-table-column>
       <el-table-column label="操作" width="100">
         <template #default="{ row }">
-          <el-button :icon="Edit" circle plain type="primary"></el-button>
-          <el-button :icon="Delete" circle plain type="danger"></el-button>
+          <el-button :icon="Edit" circle plain type="primary" @click="editCategory(row)"></el-button>
+          <el-button :icon="Delete" circle plain type="danger" @click="delCategory(row.id)"></el-button>
         </template>
       </el-table-column>
       <template #empty>
@@ -104,7 +143,7 @@ const add = async () => {
     </el-form>
     <template #footer>
         <span class="dialog-footer">
-          <el-button type="primary" @click="add">确定</el-button>
+          <el-button type="primary" @click="addOrUpdate">确定</el-button>
           <el-button @click="clearData" >取消</el-button>
         </span>
     </template>
@@ -114,6 +153,7 @@ const add = async () => {
 <style lang="scss" scoped>
 .page-container {
   min-height: 100%;
+  max-width: 90%;
   box-sizing: border-box;
 
   .header {

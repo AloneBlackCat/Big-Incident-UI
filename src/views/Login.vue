@@ -52,7 +52,7 @@ const route = useRouter();
 const tokenStore = useTokenStore();
 const login = async () => {
   let result = await userLoginService(registerData);
-  ElMessage.success({message: result.data.message ? result.data.message : "登录成功"})
+  ElMessage.success({message: result.message ? result.message : "登录成功"})
   tokenStore.setToken(result.data)
   await route.push('/')
 }

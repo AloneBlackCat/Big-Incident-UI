@@ -5,6 +5,16 @@ export const categoryListService = () => {
     return request.get('/category')
 }
 
-export const addCategoryService = (value) => {
-    return request.post('/category',value)
+
+export const addCategoryService = (data) => {
+    return request.post('/category',data)
+}
+
+export const updateCategoryService = (data) => {
+    return request.put('/category',data)
+}
+
+
+export const deleteCategoryService = (id) => {
+    return request.delete(`/category?id=${id}`)
 }
