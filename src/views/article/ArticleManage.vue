@@ -5,6 +5,8 @@ import {
 } from '@element-plus/icons-vue'
 
 import { ref,reactive } from 'vue'
+import { articlesService } from "@/api/article.js";
+import {categoryListService} from "@/api/category.js";
 
 //文章分类数据模型
 const categories = reactive([
@@ -79,11 +81,50 @@ const pageSize = ref(3)//每页条数
 //当每页条数发生了变化，调用此函数
 const onSizeChange = (size) => {
   pageSize.value = size
+  articleList()
 }
 //当前页码发生变化，调用此函数
 const onCurrentChange = (num) => {
   pageNum.value = num
+  articleList()
 }
+
+const categoryList = async () => {
+  const result = await categoryListService()
+  categories.length = 0
+  Object.assign(categories,result.data)
+}
+
+const articleList = async () => {
+  let data = {
+    pageNum: pageNum.value,
+    pageSize: pageSize.value,
+    categoryId: categoryId.value? categoryId.value : null,
+    state: state.value? state.value : null
+  }
+  const result = await articlesService(data)
+  total.value = result.data.total? result.data.total : 0
+  articles.length = 0
+  Object.assign(articles,result.data.items)
+
+  for (let i = 0; i < articles.length; i++) {
+    let article = articles[i]
+    for (let j = 0; j < categories.length; j++) {
+      if (article.categoryId === categories[j].id) {
+        article['categoryName'] = categories[j].categoryName
+      }
+    }
+  }
+}
+
+const clearData = () => {
+  categoryId.value = null
+  state.value = null
+}
+
+categoryList()
+articleList()
+
 </script>
 <template>
   <el-card class="page-container">
@@ -115,14 +156,14 @@ const onCurrentChange = (num) => {
         </el-select>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary">搜索</el-button>
-        <el-button>重置</el-button>
+        <el-button type="primary" @click="articleList">搜索</el-button>
+        <el-button @click="clearData">重置</el-button>
       </el-form-item>
     </el-form>
     <!-- 文章列表 -->
     <el-table :data="articles" style="width: 100%">
       <el-table-column label="文章标题" width="400" prop="title"></el-table-column>
-      <el-table-column label="分类" prop="categoryId"></el-table-column>
+      <el-table-column label="分类" prop="categoryName"></el-table-column>
       <el-table-column label="发表时间" prop="createTime"> </el-table-column>
       <el-table-column label="状态" prop="state"></el-table-column>
       <el-table-column label="操作" width="100">
@@ -136,9 +177,16 @@ const onCurrentChange = (num) => {
       </template>
     </el-table>
     <!-- 分页条 -->
-    <el-pagination v-model:current-page="pageNum" v-model:page-size="pageSize" :page-sizes="[3, 5 ,10, 15]"
-                   layout="jumper, total, sizes, prev, pager, next" background :total="total" @size-change="onSizeChange"
-                   @current-change="onCurrentChange" style="margin-top: 20px; justify-content: flex-end" />
+    <el-pagination
+        v-model:current-page="pageNum"
+        v-model:page-size="pageSize"
+        :page-sizes="[3, 5 ,10, 15]"
+        layout="jumper, total, sizes, prev, pager, next" background
+        :total="parseInt(total)"
+        @size-change="onSizeChange"
+        @current-change="onCurrentChange"
+        style="margin-top: 20px; justify-content: flex-end"
+    />
   </el-card>
 </template>
 <style lang="scss" scoped>
