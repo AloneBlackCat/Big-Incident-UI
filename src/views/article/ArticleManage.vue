@@ -5,7 +5,7 @@ import {
 } from '@element-plus/icons-vue'
 
 import {ref, reactive} from 'vue'
-import {articlesService} from "@/api/article.js"
+import {addArticleService, articlesService, deleteArticleService, updateArticleService} from "@/api/article.js"
 import {categoryListService} from "@/api/category.js"
 
 //文章分类数据模型
@@ -131,7 +131,7 @@ import {Plus} from '@element-plus/icons-vue'
 //控制抽屉是否显示
 const visibleDrawer = ref(false)
 //添加表单数据模型
-const articleModel = ref({
+const articleModel = reactive({
   title: '',
   categoryId: '',
   coverImg: '',
@@ -139,6 +139,63 @@ const articleModel = ref({
   state: ''
 })
 
+// 导入token
+import {useTokenStore} from '@/stores/token.js'
+import {ElMessage} from "element-plus";
+
+const token = useTokenStore();
+
+// 上传成功的回调函数
+const uploadSuccess = (result) => {
+  articleModel.coverImg = result.data
+}
+
+const addOrUpdateArticle = async (clickState) => {
+  let result
+  // 赋值
+  articleModel.state = clickState
+  if (articleModel.id === undefined || articleModel.id === null) {
+    result = await addArticleService(articleModel)
+    ElMessage.success(result.message ? result.message : '添加成功')
+  } else {
+    result = await updateArticleService(articleModel)
+    ElMessage.success(result.message ? result.message : '修改成功')
+  }
+  // 清空数据
+  Object.keys(articleModel).forEach(key => {
+    articleModel[key] = null
+  })
+  //关闭抽屉页面
+  visibleDrawer.value = false
+  // 更新列表
+  await articleList()
+}
+
+const addArticle = () => {
+  // 清空数据
+  Object.assign(articleModel, {
+    title: '',
+    categoryId: '',
+    coverImg: '',
+    content: '',
+    state: ''
+  })
+  visibleDrawer.value = true
+}
+const updateArticle = (row) => {
+  // 回显
+  tot = '修改文章'
+  Object.assign(articleModel, row)
+  visibleDrawer.value = true
+}
+
+const deleteArticle = async (id) => {
+  const result = await deleteArticleService(id)
+  ElMessage.success(result.message ? result.message : '删除成功')
+  await articleList()
+}
+
+let tot = ref("添加文章")
 </script>
 <template>
   <el-card class="page-container">
@@ -146,7 +203,7 @@ const articleModel = ref({
       <div class="header">
         <span>文章管理</span>
         <div class="extra">
-          <el-button type="primary" @click="visibleDrawer = true">添加文章</el-button>
+          <el-button type="primary" @click="addArticle">添加文章</el-button>
         </div>
       </div>
     </template>
@@ -182,8 +239,8 @@ const articleModel = ref({
       <el-table-column label="状态" prop="state"></el-table-column>
       <el-table-column label="操作" width="100">
         <template #default="{ row }">
-          <el-button :icon="Edit" circle plain type="primary"></el-button>
-          <el-button :icon="Delete" circle plain type="danger"></el-button>
+          <el-button :icon="Edit" circle plain type="primary" @click="updateArticle(row)"></el-button>
+          <el-button :icon="Delete" circle plain type="danger" @click="deleteArticle(row.id)"></el-button>
         </template>
       </el-table-column>
       <template #empty>
@@ -203,7 +260,7 @@ const articleModel = ref({
     />
 
     <!-- 抽屉 -->
-    <el-drawer v-model="visibleDrawer" title="添加文章" direction="rtl" size="50%">
+    <el-drawer v-model="visibleDrawer" :title="tot" direction="rtl" size="50%">
       <!-- 添加文章表单 -->
       <el-form :model="articleModel" label-width="100px">
         <el-form-item label="文章标题">
@@ -211,14 +268,30 @@ const articleModel = ref({
         </el-form-item>
         <el-form-item label="文章分类">
           <el-select placeholder="请选择" v-model="articleModel.categoryId">
-            <el-option v-for="c in categorys" :key="c.id" :label="c.categoryName" :value="c.id">
+            <el-option v-for="c in categories" :key="c.id" :label="c.categoryName" :value="c.id">
             </el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="文章封面">
 
-          <el-upload class="avatar-uploader" :auto-upload="false" :show-file-list="false">
-            <img v-if="articleModel.coverImg" :src="articleModel.coverImg" class="avatar"/>
+          <!--
+            auto-upload: 设置是否自动上传
+            action: 设置服务器接口路径
+            name: 设置上传的文件字段名
+            headers: 设置上传的请求头
+            on-success: 设置上传成功的回调函数
+                   -->
+
+          <el-upload
+              class="avatar-uploader"
+              :auto-upload="true"
+              :show-file-list="false"
+              action="/api/upload"
+              name="file"
+              :headers="{'Authorization' : token.token}"
+              :on-success="uploadSuccess"
+          >
+            <img v-if="articleModel.coverImg" :src="articleModel.coverImg" class="avatar" alt=""/>
             <el-icon v-else class="avatar-uploader-icon">
               <Plus/>
             </el-icon>
@@ -235,8 +308,8 @@ const articleModel = ref({
           </div>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary">发布</el-button>
-          <el-button type="info">草稿</el-button>
+          <el-button type="primary" @click="addOrUpdateArticle('已发布')">发布</el-button>
+          <el-button type="info" @click="addOrUpdateArticle('草稿')">草稿</el-button>
         </el-form-item>
       </el-form>
     </el-drawer>
@@ -245,6 +318,7 @@ const articleModel = ref({
 <style lang="scss" scoped>
 .page-container {
   min-height: 100%;
+  max-width: 95%;
   box-sizing: border-box;
 
   .header {
@@ -256,7 +330,7 @@ const articleModel = ref({
 
 /* 抽屉样式 */
 .avatar-uploader {
-  :deep {
+  :deep() {
     .avatar {
       width: 178px;
       height: 178px;
@@ -288,6 +362,7 @@ const articleModel = ref({
 
 .editor {
   width: 100%;
+
   :deep(.ql-editor) {
     min-height: 200px;
   }
