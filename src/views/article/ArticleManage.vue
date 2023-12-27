@@ -161,30 +161,24 @@ const addOrUpdateArticle = async (clickState) => {
     result = await updateArticleService(articleModel)
     ElMessage.success(result.message ? result.message : '修改成功')
   }
-  // 清空数据
-  Object.keys(articleModel).forEach(key => {
-    articleModel[key] = null
-  })
   //关闭抽屉页面
   visibleDrawer.value = false
   // 更新列表
   await articleList()
 }
 
+let tot = ref('')
 const addArticle = () => {
+  tot.value = '添加文章'
   // 清空数据
-  Object.assign(articleModel, {
-    title: '',
-    categoryId: '',
-    coverImg: '',
-    content: '',
-    state: ''
+  Object.keys(articleModel).forEach(key => {
+    articleModel[key] = null
   })
   visibleDrawer.value = true
 }
 const updateArticle = (row) => {
   // 回显
-  tot = '修改文章'
+  tot.value = '修改文章'
   Object.assign(articleModel, row)
   visibleDrawer.value = true
 }
@@ -195,7 +189,7 @@ const deleteArticle = async (id) => {
   await articleList()
 }
 
-let tot = ref("添加文章")
+
 </script>
 <template>
   <el-card class="page-container">
