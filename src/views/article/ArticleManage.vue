@@ -143,7 +143,7 @@ const articleModel = reactive({
 import {useTokenStore} from '@/stores/token.js'
 import {ElMessage} from "element-plus";
 
-const token = useTokenStore();
+const { token } = useTokenStore();
 
 // 上传成功的回调函数
 const uploadSuccess = (result) => {
@@ -184,8 +184,8 @@ const updateArticle = (row) => {
 }
 
 const deleteArticle = async (id) => {
-  const result = await deleteArticleService(id)
-  ElMessage.success(result.message ? result.message : '删除成功')
+  const { message } = await deleteArticleService(id)
+  ElMessage.success(message ? message : '删除成功')
   await articleList()
 }
 
@@ -282,7 +282,7 @@ const deleteArticle = async (id) => {
               :show-file-list="false"
               action="/api/upload"
               name="file"
-              :headers="{'Authorization' : token.token}"
+              :headers="{'Authorization' : token}"
               :on-success="uploadSuccess"
           >
             <img v-if="articleModel.coverImg" :src="articleModel.coverImg" class="avatar" alt=""/>

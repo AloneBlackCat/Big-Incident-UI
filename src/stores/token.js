@@ -15,4 +15,5 @@ export const useTokenStore = defineStore('token', () => {
     return {
         token,setToken,removeToken
     }
-}, {persist: true})
+})
+export default useTokenStore
